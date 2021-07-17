@@ -493,7 +493,7 @@ def test(request):
 
 
 def forget_password(request):
-    if request.method == 'POST' and request.POST:
+    if request.method == 'POST':
         username = request.POST['username']
         send_captcha = request.POST['send_captcha'] == 'yes'
         vertify_code = request.POST['vertify_code'] # 用户输入的验证码
