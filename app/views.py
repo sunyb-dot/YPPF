@@ -514,45 +514,46 @@ def forget_password(request):
                 if not email or email.lower() == 'none' or '@' not in email:
                     err_code = 3
                     err_message = '您没有设置邮箱，请发送姓名、学号和常用邮箱至|||||||进行修改'# 记得填
-                captcha = random.randrange(1000000) # randint包含端点，randrange不包含
-                captcha = f'{captcha:06}'
-                msg = (
-                f'<h3><b>亲爱的{useroj.pname}同学：</b></h3><br/>'
-                '您好！您的账号正在进行邮箱验证，本次请求的验证码为：<br/>'
-                f'<p style="color:orange">{captcha}'
-                '<span style="color:gray">(仅当前页面有效)</span></p>'
-                '点击进入<a href="https://yppf.yuanpei.life">元培成长档案</a><br/>'
-                '<br/><br/><br/>'
-                '元培学院开发组<br/>'
-                + datetime.now().strftime('%Y年%m月%d日'))
-                post_data = {
-                    'toaddrs' : [email],    # 收件人列表
-                    'subject' : 'YPPF登录验证',        # 邮件主题/标题
-                    'content' : msg,    # 邮件内容
-                        # 若subject为空, 第一个\n视为标题和内容的分隔符
-                    'html' : True,          # 可选 如果为真则content被解读为html
-                    'private_level' : 0,    # 可选 应在0-2之间
-                        # 影响显示的收件人信息
-                        # 0级全部显示, 1级只显示第一个收件人, 2级只显示发件人
-                    'secret' : email_coder.encode(msg), # content加密后的密文
-                }
-                post_data = json.dumps(post_data)
-                try:
-                    response = requests.post(email_url, post_data, timeout=5)
-                    response = response.json()
-                    if response['status'] != 200:
+                else:
+                    captcha = random.randrange(1000000) # randint包含端点，randrange不包含
+                    captcha = f'{captcha:06}'
+                    msg = (
+                    f'<h3><b>亲爱的{useroj.pname}同学：</b></h3><br/>'
+                    '您好！您的账号正在进行邮箱验证，本次请求的验证码为：<br/>'
+                    f'<p style="color:orange">{captcha}'
+                    '<span style="color:gray">(仅当前页面有效)</span></p>'
+                    '点击进入<a href="https://yppf.yuanpei.life">元培成长档案</a><br/>'
+                    '<br/><br/><br/>'
+                    '元培学院开发组<br/>'
+                    + datetime.now().strftime('%Y年%m月%d日'))
+                    post_data = {
+                        'toaddrs' : [email],    # 收件人列表
+                        'subject' : 'YPPF登录验证',        # 邮件主题/标题
+                        'content' : msg,    # 邮件内容
+                            # 若subject为空, 第一个\n视为标题和内容的分隔符
+                        'html' : True,          # 可选 如果为真则content被解读为html
+                        'private_level' : 0,    # 可选 应在0-2之间
+                            # 影响显示的收件人信息
+                            # 0级全部显示, 1级只显示第一个收件人, 2级只显示发件人
+                        'secret' : email_coder.encode(msg), # content加密后的密文
+                    }
+                    post_data = json.dumps(post_data)
+                    try:
+                        response = requests.post(email_url, post_data, timeout=5)
+                        response = response.json()
+                        if response['status'] != 200:
+                            err_code = 4
+                            err_message = '邮件发送失败'
+                        else:
+                            request.session['captcha'] = captcha
+                            pre, suf = email.rsplit('@', 1)
+                            if len(pre) > 5:
+                                pre = pre[:2] + '*' * len(pre[2:-3]) + pre[-3:]
+                            err_code = 0
+                            err_message = f'验证码已发送至{pre}@{suf}'
+                    except:
                         err_code = 4
                         err_message = '邮件发送失败'
-                    else:
-                        request.session['captcha'] = captcha
-                        pre, suf = email.rsplit('@', 1)
-                        if len(pre) > 5:
-                            pre = pre[:2] + '*' * len(pre[2:-3]) + pre[-3:]
-                        err_code = 0
-                        err_message = f'验证码已发送至{pre}@{suf}'
-                except:
-                    err_code = 4
-                    err_message = '邮件发送失败'
             else:
                 captcha = request.session.get('captcha')
                 if not captcha or len(captcha) != 6:

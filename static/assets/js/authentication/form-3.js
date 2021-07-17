@@ -20,8 +20,9 @@ function settime() {
 
 if (send) {
 	send.addEventListener('click', function() {
-		settime();
 		send_captcha.value='yes';
+		form.submit();
+		settime();
 	});
 }
 if (submit) {
