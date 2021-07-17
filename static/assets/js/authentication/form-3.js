@@ -1,6 +1,6 @@
 //added by pht
-var send = document.getElementById("send");
-var submit = document.getElementById("submit");
+var send = document.getElementById("send_btn");
+var submit = document.getElementById("submit_btn");
 var form = document.getElementById("form");
 var send_captcha = document.getElementById("send_captcha");
 var countdown=60;
