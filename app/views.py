@@ -504,7 +504,7 @@ def forget_password(request):
             err_message = '账号不存在'
         else:
             user = User.objects.get(username=username)
-            useroj = NaturalPerson.objects.get(pid=username) # 目前似乎保证是自然人
+            useroj = NaturalPerson.objects.get(pid=user) # 目前似乎保证是自然人
             isFirst = useroj.firstTimeLogin
             if isFirst:  
                 err_code = 2
