@@ -561,6 +561,7 @@ def forget_password(request):
                     err_message = '请先发送验证码'
                 elif vertify_code.upper() == captcha.upper():
                     auth.login(request, user)
+                    request.session['username'] = username
                     request.session['forgetpw'] = 'yes'
                     return redirect(reverse('modpw'))
                 else:
