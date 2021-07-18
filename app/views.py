@@ -513,7 +513,7 @@ def forget_password(request):
                 email = useroj.pemail
                 if not email or email.lower() == 'none' or '@' not in email:
                     err_code = 3
-                    err_message = '您没有设置邮箱，请发送姓名、学号和常用邮箱至|||||||进行修改'# 记得填
+                    err_message = '您没有设置邮箱，请发送姓名、学号和常用邮箱至gypjwb@pku.edu.cn进行修改'# 记得填
                 else:
                     captcha = random.randrange(1000000) # randint包含端点，randrange不包含
                     captcha = f'{captcha:06}'
@@ -538,22 +538,22 @@ def forget_password(request):
                         'secret' : email_coder.encode(msg), # content加密后的密文
                     }
                     post_data = json.dumps(post_data)
+                    pre, suf = email.rsplit('@', 1)
+                    if len(pre) > 5:
+                        pre = pre[:2] + '*' * len(pre[2:-3]) + pre[-3:]
                     try:
-                        response = requests.post(email_url, post_data, timeout=5)
+                        response = requests.post(email_url, post_data, timeout=6)
                         response = response.json()
                         if response['status'] != 200:
                             err_code = 4
-                            err_message = '邮件发送失败'
+                            err_message = f'未能向{pre}@{suf}发送邮件'
                         else:
                             request.session['captcha'] = captcha
-                            pre, suf = email.rsplit('@', 1)
-                            if len(pre) > 5:
-                                pre = pre[:2] + '*' * len(pre[2:-3]) + pre[-3:]
                             err_code = 0
                             err_message = f'验证码已发送至{pre}@{suf}'
                     except:
                         err_code = 4
-                        err_message = '邮件发送失败'
+                        err_message = '邮件发送失败：超时'
             else:
                 captcha = request.session.get('captcha')
                 if not captcha or len(captcha) != 6:
@@ -561,6 +561,7 @@ def forget_password(request):
                     err_message = '请先发送验证码'
                 elif vertify_code.upper() == captcha.upper():
                     auth.login(request, user)
+                    request.session.pop('captcha')
                     request.session['username'] = username
                     request.session['forgetpw'] = 'yes'
                     return redirect(reverse('modpw'))
@@ -597,7 +598,7 @@ def modpw(request):
             err_message = "新密码不能与学号相同"
         elif newpw != oldpassword and forgetpw:    # added by pht
             err_code = 5
-            err_message = "两次输入的密码不同"
+            err_message = "两次输入的密码不匹配"
         else:
             userauth = auth.authenticate(
                 username=username, password=oldpassword)
