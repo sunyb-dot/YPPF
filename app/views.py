@@ -445,11 +445,10 @@ def search(request):
         分成搜索个人和搜索组织两个模块，每个模块的呈现独立开，有内容才呈现，否则不显示
         搜索个人：
             支持使用姓名搜索，支持对未设为不可见的昵称和专业搜索
-            搜索结果的呈现采用内容/未公开表示，所有列表为people_filed
+            搜索结果的呈现采用内容/未公开表示，所有列表为people_field
         搜索组织
             支持使用组织名、组织类型搜索、一级负责人姓名
             组织的呈现内容由拓展表体现，不在这个界面呈现具体成员
-
     '''
     try:
         valid, user_type, html_display = utils.check_user_type(request)
@@ -460,7 +459,7 @@ def search(request):
         query = request.GET.get('Query', '')
         if query == '':
             return redirect('/welcome/')
-
+        
         # 首先搜索个人
         people_list = NaturalPerson.objects.filter(
             Q(pname__icontains=query) | (Q(pnickname__icontains=query)) | (Q(pmajor__icontains = query)))
@@ -469,7 +468,6 @@ def search(request):
 
         # 首先是准备搜索个人信息的部分
         people_field = ['姓名', '年级&班级', '昵称', '性别', '专业', '邮箱', '电话', '宿舍', '状态']
-
         return render(request, 'search.html', locals())
     except:
         auth.logout(request)
