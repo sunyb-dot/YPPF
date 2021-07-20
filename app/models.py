@@ -9,6 +9,7 @@ import datetime
 from app.utils import load_local_json
 local_json = load_local_json()
 
+
 class NaturalPersonManager(models.Manager):
     def activated(self):
         return self.exclude(pstatus=NaturalPerson.status.GRADUATED)
@@ -27,35 +28,37 @@ class NaturalPerson(models.Model):
     # pid = models.CharField(max_length=10, unique=True, primary_key=True)
 
     # Natural Person Attributes
-    #pid = models.ForeignKey(User, to_field='username',
+    # pid = models.ForeignKey(User, to_field='username',
     #                        on_delete=models.CASCADE, unique=True, primary_key=True)
-    pid = models.OneToOneField(to = User, on_delete = models.CASCADE)
+    pid = models.OneToOneField(to=User, on_delete=models.CASCADE)
     pname = models.CharField("姓名", max_length=10)
-    pnickname = models.CharField("昵称", max_length=20, null=True, blank=True)   # 添加昵称
+    pnickname = models.CharField(
+        "昵称", max_length=20, null=True, blank=True)   # 添加昵称
+
     class Gender(models.IntegerChoices):
         MALE = (0, "男")
         FEMALE = (1, "女")
         OTHER = (2, "其它")
 
     #pgender = models.CharField(max_length=10, null=True)
-    pgender = models.SmallIntegerField('性别', choices=Gender.choices,null=True,blank=True)
+    pgender = models.SmallIntegerField(
+        '性别', choices=Gender.choices, null=True, blank=True)
 
-    pemail = models.EmailField("邮箱", null=True,blank=True)
-    ptel = models.CharField("电话", max_length=20, null=True,blank=True)
+    pemail = models.EmailField("邮箱", null=True, blank=True)
+    ptel = models.CharField("电话", max_length=20, null=True, blank=True)
     pBio = models.TextField("自我介绍", max_length=1024, default='还没有填写哦～')
     avatar = models.ImageField(upload_to=f'avatar/', blank=True)
     firstTimeLogin = models.BooleanField(default=True)
     objects = NaturalPersonManager()
-    QRcode=models.ImageField(upload_to=f'QRcode/', blank=True)
+    QRcode = models.ImageField(upload_to=f'QRcode/', blank=True)
 
     YQPoint = models.FloatField("元气值", default=0.0)
 
-
     # Students Attributes
-    pclass = models.CharField("班级", max_length=5, null=True,blank=True)
-    pmajor = models.CharField("专业", max_length=25, null=True,blank=True)
-    pyear = models.CharField("年级", max_length=5, null=True,blank=True)
-    pdorm = models.CharField("宿舍", max_length=6, null=True,blank=True)  # 宿舍
+    pclass = models.CharField("班级", max_length=5, null=True, blank=True)
+    pmajor = models.CharField("专业", max_length=25, null=True, blank=True)
+    pyear = models.CharField("年级", max_length=5, null=True, blank=True)
+    pdorm = models.CharField("宿舍", max_length=6, null=True, blank=True)  # 宿舍
 
     class status(models.IntegerChoices):
         UNDERGRADUATED = 0  # 未毕业
@@ -82,6 +85,25 @@ class NaturalPerson(models.Model):
 
     def __str__(self):
         return str(self.pname)
+
+    def show_info(self):
+        '''
+            返回值为一个列表，在search.html中使用，按照如下顺序呈现：
+            people_field = ['姓名', '年级&班级', '昵称', '性别', '专业', '邮箱', '电话', '宿舍', '状态']
+            其中未公开的属性呈现为‘未公开’
+        '''
+        # print(self.pyear)
+        unpublished = '未公开'
+        # print(unpublished)
+        info = [self.pname, self.pyear, self.pclass]
+        info.append(self.pnickname if self.show_nickname else unpublished)
+        info.append(self.pgender if self.show_gender else unpublished)
+        info.append(self.pmajor if self.show_major else unpublished)
+        info.append(self.pemail if self.show_email else unpublished)
+        info.append(self.ptel if self.show_tel else unpublished)
+        info.append(self.pdorm if self.show_dorm else unpublished)
+        info.append(self.pstatus)
+        return info
 
 
 class OrganizationType(models.Model):
@@ -120,11 +142,12 @@ class OrganizationType(models.Model):
         '组织类型编号', unique=True, primary_key=True)
     otype_name = models.CharField('组织类型名称', max_length=25)
     otype_superior_id = models.SmallIntegerField('上级组织类型编号', default=0)
-    oincharge = models.ForeignKey(NaturalPerson, on_delete=models.SET_NULL,blank=True,null=True) # 相关组织的负责人
+    oincharge = models.ForeignKey(
+        NaturalPerson, on_delete=models.SET_NULL, blank=True, null=True)  # 相关组织的负责人
     ojob_name_list = ListCharField(
         base_field=models.CharField(max_length=10),
         size=4,
-        max_length = 44
+        max_length=44
     )
 
     def __str__(self):
@@ -141,29 +164,32 @@ class OrganizationManager(models.Manager):
     def activated(self):
         return self.exclude(ostatus=False)
 
+
 class Organization(models.Model):
-    oid = models.OneToOneField(to = User, on_delete = models.CASCADE)
-    #oid = models.ForeignKey(User, to_field='username',
+    oid = models.OneToOneField(to=User, on_delete=models.CASCADE)
+    # oid = models.ForeignKey(User, to_field='username',
     #                        on_delete=models.CASCADE, unique=True, primary_key=True)
-    oname = models.CharField(max_length=32,unique=True)
+    oname = models.CharField(max_length=32, unique=True)
     # 本质上的逻辑应该不是建立时间，而是现在这个组织处于哪一个周期
     # oestablished_time = models.DateField('建立时间')
-    #oschool_year = models.IntegerField(
+    # oschool_year = models.IntegerField(
     #    "当前学年", default=int(datetime.datetime.now().strftime('%Y')))
 
-    #oschool_semester = models.CharField(
+    # oschool_semester = models.CharField(
     #    "当前学期", choices=Semester.choices,max_length=15)
 
-    ostatus = models.BooleanField("激活状态")  #表示一个组织是否上线(或者是已经被下线)
+    ostatus = models.BooleanField("激活状态")  # 表示一个组织是否上线(或者是已经被下线)
 
     objects = OrganizationManager()
 
     YQPoint = models.FloatField("元气值", default=0.0)
-    ointroduction = models.TextField('介绍', null=True, blank=True,default="这里暂时没有介绍哦~")
+    ointroduction = models.TextField(
+        '介绍', null=True, blank=True, default="这里暂时没有介绍哦~")
     otype_id = models.ForeignKey(
         OrganizationType, to_field="otype_id", on_delete=models.CASCADE)
     avatar = models.ImageField(upload_to=f'avatar/', blank=True)
-    QRcode = models.ImageField(upload_to=f'QRcode/', blank=True)#二维码字段
+    QRcode = models.ImageField(upload_to=f'QRcode/', blank=True)  # 二维码字段
+
     def __str__(self):
         return self.oname
 
@@ -197,7 +223,7 @@ class Position(models.Model):
     in_year = models.IntegerField(
         "当前学年", default=int(datetime.datetime.now().strftime('%Y')))
     in_semester = models.CharField(
-        "当前学期", choices=Semester.choices, default=Semester.Annual,max_length=15)
+        "当前学期", choices=Semester.choices, default=Semester.Annual, max_length=15)
 
     objects = PositionManager()
     #in_time = models.DateField('加入时间')
@@ -205,8 +231,9 @@ class Position(models.Model):
 
 
 class Course(models.Model):
-    cid = models.OneToOneField(to = Organization, on_delete =  models.CASCADE, related_name="cid")
-    #cid = models.ForeignKey(Organization, to_field="oid",
+    cid = models.OneToOneField(
+        to=Organization, on_delete=models.CASCADE, related_name="cid")
+    # cid = models.ForeignKey(Organization, to_field="oid",
     #                        related_name='cid', on_delete=models.CASCADE, primary_key=True)
     # 不应该有这个字段了,这个字段应该自然的就是“组织的名字”
     #cname = models.CharField("课程名称", max_length=25)
@@ -228,11 +255,12 @@ class Activity(models.Model):
     ayear = models.IntegerField(
         "活动年份", default=int(datetime.datetime.now().strftime('%Y')))
     asemester = models.CharField(
-        "活动学期", choices=Semester.choices,max_length=15)
+        "活动学期", choices=Semester.choices, max_length=15)
     astart = models.DateTimeField("开始时间")
     afinish = models.DateTimeField("结束时间")
     acontent = models.CharField("活动内容", max_length=225)
     QRcode = models.ImageField(upload_to=f'QRcode/', blank=True)  # 二维码字段
+
     class Astatus(models.TextChoices):
         Asta_Pending = "审核中"
         Applying = "报名中"
@@ -241,12 +269,11 @@ class Activity(models.Model):
         Canceled = "已取消"
         Finish = "已结束"
         Unsucceed = "未通过"
-    
 
-    astatus = models.CharField("活动状态", choices=Astatus.choices,max_length=32)
+    astatus = models.CharField("活动状态", choices=Astatus.choices, max_length=32)
 
     YQPoint = models.FloatField("元气值", default=0.0)
-    URL = models.URLField("相关网址", null=True,blank=True)
+    URL = models.URLField("相关网址", null=True, blank=True)
 
     def __str__(self):
         return f"活动：{self.aname}"
@@ -257,4 +284,3 @@ class Paticipant(models.Model):
                             on_delete=models.CASCADE)
     pid = models.ForeignKey(
         NaturalPerson, to_field="pid", on_delete=models.CASCADE)
-

@@ -140,7 +140,7 @@ def miniLogin(request):
 
 
 @login_required(redirect_field_name='origin')
-def stuinfo(request, name = None):
+def stuinfo(request, name=None):
     '''
         进入到这里的逻辑:
         首先必须登录，并且不是超级账户
@@ -156,7 +156,7 @@ def stuinfo(request, name = None):
             如果重名
                 那么期望有一个"+"在name中，如果搜不到就跳转到Search/？Query=name让他跳转去
     '''
-    
+
     try:
         user = request.user
         valid, user_type, html_display = utils.check_user_type(request)
@@ -183,13 +183,14 @@ def stuinfo(request, name = None):
             if len(person) == 1:        # 无重名
                 person = person[0]
             else:                       # 有很多人，这时候假设加号后面的是user的id
-                if len(name_list) == 1: # 没有任何后缀信息，那么如果是自己则跳转主页，否则跳转搜索
+                if len(name_list) == 1:  # 没有任何后缀信息，那么如果是自己则跳转主页，否则跳转搜索
                     if user_type == 'Person' and NaturalPerson.objects.activated().get(pid=user).pname == name:
                         person = NaturalPerson.objects.activated().get(pid=user)
                     else:               # 不是自己，信息不全跳转搜索
-                        return redirect('/search?Query=' + name)        
+                        return redirect('/search?Query=' + name)
                 else:
-                    obtain_id = int(name_list[1])                       # 获取增补信息
+                    # 获取增补信息
+                    obtain_id = int(name_list[1])
                     get_user = User.objects.get(id=obtain_id)
                     potential_person = NaturalPerson.objects.activated().get(pid=get_user)
                     assert potential_person in person
@@ -204,24 +205,29 @@ def stuinfo(request, name = None):
 
             # 处理组织相关的信息
             join_pos_id_list = Position.objects.activated().filter(person=person)
-            control_pos_id_list = join_pos_id_list.filter(pos=0)        # 最高级, 是非密码管理员
+            control_pos_id_list = join_pos_id_list.filter(
+                pos=0)        # 最高级, 是非密码管理员
 
             html_display['modpw_code'] = modpw_status is not None and modpw_status == 'success'
-            html_display['underground_url'] = underground_url                       # 跳转至地下室预约系统的
-            html_display['warn_code'] = request.GET.get('warn_code', 0)             # 是否有来自外部的消息
-            html_display['warn_message'] = request.GET.get('warn_message', "")      # 提醒的具体内容 
+            # 跳转至地下室预约系统的
+            html_display['underground_url'] = underground_url
+            html_display['warn_code'] = request.GET.get(
+                'warn_code', 0)             # 是否有来自外部的消息
+            html_display['warn_message'] = request.GET.get(
+                'warn_message', "")      # 提醒的具体内容
             html_display['userinfo'] = person
             html_display['is_myself'] = is_myself
-            html_display['join_org_list'] = Organization.objects.filter(org__in = join_pos_id_list.values('org'))               # 我属于的组织
-            html_display['control_org_list'] = list(Organization.objects.filter(org__in = control_pos_id_list.values('org')))   # 我管理的组织
+            html_display['join_org_list'] = Organization.objects.filter(
+                org__in=join_pos_id_list.values('org'))               # 我属于的组织
+            html_display['control_org_list'] = list(Organization.objects.filter(
+                org__in=control_pos_id_list.values('org')))   # 我管理的组织
             html_display['title_name'] = 'User Profile'
             html_display['narbar_name'] = '个人主页'
-            
+
             return render(request, 'stuinfo.html', locals())
     except:
         auth.logout(request)
         return redirect('/index/')
-
 
 
 @login_required(redirect_field_name='origin')
@@ -270,7 +276,8 @@ def orginfo(request, name=None):  # 此时的登录人有可能是负责人,因�
     '''
     user = request.user
     valid, u_type, html_display = utils.check_user_type(request)
-    me = NaturalPerson.objects.activated().get(pid = user) if u_type == 'Person' else Organization.objects.get(oid=user)
+    me = NaturalPerson.objects.activated().get(
+        pid=user) if u_type == 'Person' else Organization.objects.get(oid=user)
     if not valid:
         return redirect('/logout/')
     if name is None:
@@ -286,7 +293,6 @@ def orginfo(request, name=None):  # 此时的登录人有可能是负责人,因�
     except:
         return redirect('/welcome/')
 
-
     # 补充一些呈现信息
     html_display['title_name'] = 'Org. Profile'
     html_display['narbar_name'] = '组织主页'
@@ -296,21 +302,21 @@ def orginfo(request, name=None):  # 此时的登录人有可能是负责人,因�
 
 @login_required(redirect_field_name='origin')
 def homepage(request):
-    
-    valid, u_type, html_display = utils.check_user_type(request) #
-    is_person = True if u_type == 'Person' else False #
+
+    valid, u_type, html_display = utils.check_user_type(request)
+    is_person = True if u_type == 'Person' else False
     if not valid:
-        return redirect('/logout/') #
+        return redirect('/logout/')
     me = NaturalPerson.objects.get(
-        pid=request.user) if is_person else Organization.objects.get(oid=request.user) #
-    myname = me.pname if is_person else me.oname #
+        pid=request.user) if is_person else Organization.objects.get(oid=request.user)
+    myname = me.pname if is_person else me.oname
     # 直接储存在html_display中
     #profile_name = "个人主页" if is_person else "组织主页"
     #profile_url = "/stuinfo/" + myname if is_person else "/orginfo/" + myname
 
     # 补充一些呈现信息
     html_display['title_name'] = 'Welcome Page'
-    html_display['narbar_name'] = '近期要闻' #
+    html_display['narbar_name'] = '近期要闻'
     html_display['avatar_path'] = utils.get_user_ava(me)
     return render(request, 'welcome_page.html', locals())
 
@@ -454,26 +460,25 @@ def search(request):
         valid, user_type, html_display = utils.check_user_type(request)
         if not valid:
             return redirect('/logout/')
-  
         undergroundurl = underground_url
         query = request.GET.get('Query', '')
         if query == '':
             return redirect('/welcome/')
-        
+
         # 首先搜索个人
         people_list = NaturalPerson.objects.filter(
-            Q(pname__icontains=query) | (Q(pnickname__icontains=query)) | (Q(pmajor__icontains = query)))
-
+            Q(pname__icontains=query) | (Q(pnickname__icontains=query) & Q(show_nickname=True)) | 
+            (Q(pmajor__icontains=query) & Q(show_major=True)))
+        
         # 接下来准备呈现的内容
-
         # 首先是准备搜索个人信息的部分
-        people_field = ['姓名', '年级&班级', '昵称', '性别', '专业', '邮箱', '电话', '宿舍', '状态']
+        people_field = ['姓名', '年级', '班级', '昵称',
+                        '性别', '专业', '邮箱', '电话', '宿舍', '状态'] #感觉将年级和班级分开呈现会简洁很多
+        
         return render(request, 'search.html', locals())
     except:
         auth.logout(request)
         return redirect('/index/')
-
-
 
 
 def test(request):
