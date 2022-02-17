@@ -31,13 +31,12 @@ views
 @Date 2022-01-17
 '''
 from app.constants import *
-from boottest.global_messages import (
+from app.global_messages import (
     wrong,
     succeed,
     message_url,
     append_query,
 )
-import boottest.global_messages as my_messages
 from app import log
 from app import utils
 

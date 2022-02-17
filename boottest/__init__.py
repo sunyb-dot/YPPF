@@ -16,13 +16,6 @@ local_dict = load_local_json()
 
 # settings是懒惰的，所以可以提前导入并读取正确的值，导入boottest.settings则会错误
 from django.conf import settings
-
-# 全局设置
-DEBUG = settings.DEBUG
-MEDIA_URL = settings.MEDIA_URL
-LOGIN_URL = settings.LOGIN_URL
-
-
 # 寻找本地设置
 def base_get_setting(path: str='', default=None, trans_func=None,
                 fuzzy_lookup=False, raise_exception=True):
@@ -34,7 +27,7 @@ def base_get_setting(path: str='', default=None, trans_func=None,
     - 除非未设置raise_exception，否则不抛出异常
     '''
     try:
-        paths = path.replace('\\', '/').strip('/').split('/')
+        paths = path.replace('\\', '/').split('/')
         current_dir = local_dict
         for query in paths:
             if fuzzy_lookup and not query:
@@ -51,13 +44,9 @@ def base_get_setting(path: str='', default=None, trans_func=None,
     except Exception as e:
         if raise_exception:
             raise
-        if DEBUG:
+        if settings.DEBUG:
             if default is None:
                 print(f'{e}, but given no default')
             else:
                 print(f'{e}, returning {default} instead')
         return default
-
-
-# 全局设置变量
-# 暂无
