@@ -5,9 +5,8 @@
 {% block add_css_file %}
 <style type="text/css">
 .text-end {
-  text-align: right !important;
+  text-align: right!important;
 }
-
 #search-tab :hover {
   cursor: pointer;
 }
@@ -24,12 +23,14 @@
   position: absolute;
   left: 0;
   top: 0;
-  background: inherit;
   background-image: url(../../static/assets/img/librarypics/background2.jpg);
   /* filter: blur(2px); */
   opacity: 0.7;
   /* z-index: -1; */
   pointer-events: none;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 .bg *{
   z-index: 2;
@@ -52,17 +53,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.text-blue {
-  color: #0d6efd !important;
-}
 .svg-icon {
   width: 32px;
   height: 32px;
   vertical-align: text-bottom;
   stroke: 3;
 }
-.bg-blue-light {
-  background-color: #cfe2ff;
+.text-blue {
+  color: #0d6efd !important;
 }
 .text-red {
   color: #dc3545 !important;
@@ -72,6 +70,9 @@
 }
 .text-green {
   color: #35b653 !important;
+}
+.bg-blue-light {
+  background-color: #cfe2ff;
 }
 .bg-green-light {
   background-color: #d7f0dd;
@@ -98,16 +99,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-</style>
-<style>
-  select[readonly] {
-    background: #eee;
-    /*Simular campo inativo - Sugestão @GabrielRodrigues*/
-    pointer-events: none;
-    touch-action: none;
-  }
+
 </style>
 <style class="text/css">
+/* toggle arrow */
 [data-toggle="collapse"] .fa.fa-solid:before {
   font-family: 'Font Awesome 5 Free';
   content: "\f107";
@@ -263,7 +258,8 @@
                         </div>
                       </div>
                     </div>
-                    <!-- <div class="mb-4 col-8 col-sm-6 col-md-4 col-lg-4 col-xl-3 mb-4">
+                    <!-- 其他颜色的卡片，之后或许会用到
+                    <div class="mb-4 col-8 col-sm-6 col-md-4 col-lg-4 col-xl-3 mb-4">
                       <div class="card h-100">
                         <div class="card-body">
                           <div class="d-flex align-items-center justify-content-between">
